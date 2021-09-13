@@ -1,0 +1,35 @@
+{
+  "name": "starship",
+  "version": "1.0.0",
+  "description": "Realtime chat application for everyone",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon src/app.js",
+    "start": "cross-env NODE_ENV=development nodemon src/app.js --watch server",
+    "build": "cross-env NODE_ENV=production node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TuongMengleang",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "bluebird": "^3.7.2",
+    "body-parser": "^1.19.0",
+    "chalk": "^4.1.2",
+    "cloudinary": "^1.26.3",
+    "cors": "^2.8.5",
+    "datauri": "^4.1.0",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "joi": "^17.4.2",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.29.1",
+    "mongoose": "^6.0.5",
+    "multer": "^1.4.3",
+    "socket.io": "^4.2.0"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.12"
+  }
+}
