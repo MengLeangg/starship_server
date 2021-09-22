@@ -7,13 +7,10 @@ const io = require('socket.io')(server, { cors: { origin: '*' } }); // Create so
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const chalk = require('chalk');
-
+const { getUsers, addUser, getCurrentUser, userLeave } = require('./utils/users');
 
 // controllers
-// const User = require("./controllers/user");
-
-// Models mongodb
-// const Message = require("./models/message");
+const User = require("./controllers/user");
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -31,35 +28,52 @@ connection(); // connection to mongodb database
 require('./routes/index')(app);
 
 // ********** Socket listen for client connection ********** //
-let user_id = null;
+
 io.on('connection', (socket) => {
-
-    // handle user login online
-    socket.on('login', (_id) => {
-        // user_id = _id;
-        // User.userOnline(_id, true);
+    // when connected
+    // when user online
+    socket.on('login', function(data){
+        User.userOnline(data.userId, true)
     });
+    // take userId and socketId from user
+    socket.on("addUser", userId => {
+        addUser(userId, socket.id)
+        io.emit("getUsers", getUsers())
+    })
 
+    /*from server side we will emit 'display' event once the user starts typing
+    so that on the client side we can capture this event and display
+    '<data.user> is typing...' */
+    socket.on('typing', (data) => {
+        // console.log("data typing :", data);
+        io.emit("displayTyping", data);
+    })
 
-    // Handles "message" event sent by client
-    socket.emit('message', "Welcome to starship");
+    // // Stop Typing
+    // socket.on("stopTyping", (data) => {
+    //     io.emit("notifyStopTyping", {
+    //         userId: data.userId,
+    //         typing: data.typing
+    //     });
+    // })
 
-    // Broadcast when user connects
-    socket.broadcast.emit('message', 'A user has joined the chat');
+    // send and receive message
+    socket.on("sendMessage", ({ senderId, receiverId, text }) => {
+        const user = getCurrentUser(receiverId);
+        io.to(user.socketId).emit('getMessage', {
+            senderId,
+            text
+        })
+    })
 
-    // Listen for chatMessage
-    socket.on('chatMessage', message => {
-        io.emit('message', message);
-    });
+    // when disconnect
+    socket.on("disconnect", () => {
+        // console.log("a user disconnected.")
+        userLeave(socket.id)
+        io.emit("getUsers", getUsers())
 
-    // Client Disconnected
-    socket.on('disconnect', () => {
-        // console.log("user disconnected")
-        // update user to offline
-        // User.userOnline(user_id, false);
-
-        io.emit('message', 'A user has left the chat');
-    });
+        // when user offline
+    })
 });
 
 const PORT = process.env.PORT || 5000;

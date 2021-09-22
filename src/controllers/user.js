@@ -75,8 +75,8 @@ exports.update = async (req, res) => {
 };
 
 exports.userOnline = async (_id, status) => {
-    console.log("_id :", _id)
-    console.log("status :", status)
+    // console.log("_id :", _id)
+    // console.log("status :", status)
     if (_id) {
         await User.findByIdAndUpdate(_id, {
             online: status
