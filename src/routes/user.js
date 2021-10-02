@@ -12,7 +12,10 @@ router.get('/', auth, User.index);
 router.get("/me", auth, User.me);
 
 // GET USER BY ID
-router.get('/:id', auth, User.show)
+router.get('/:id', auth, User.show);
+
+// GET USER BY Name
+router.post('/find', auth, User.search)
 
 // UPDATE
 router.put('/:id', upload, User.update);

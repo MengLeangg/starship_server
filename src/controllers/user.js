@@ -1,4 +1,5 @@
 const { User } = require("../models/user");
+const { Conversation } = require("../models/conversation");
 const { uploader } = require('../utils/index');
 
 // @route GET api/user/me
@@ -27,10 +28,47 @@ exports.index = async (req, res) => {
 exports.show = async (req, res) => {
     try {
         const id = req.params.id;
+        // const conversation = await
         const user = await User.findById(id);
         if (!user) return res.status(401).json({ message: 'User does not exist' });
         res.status(200).json(user);
     }catch (error) {
+        res.status(500).json({message: error.message})
+    }
+};
+
+// @route GET api/user/{fullname}
+// @desc Returns a specific user
+// @access Public
+exports.search = async (req, res) => {
+    try {
+
+        // let re = new RegExp(req.body.search, 'i');
+        // User.find()
+        //     .or([{ first_name: re }, { last_name: re }])
+        //     .exec(function(err, users) {
+        //         res.status(200).json(users);
+        //     });
+
+        let userName = req.body.search; //userName = 'Tuong Mengleang';
+        let searchString = new RegExp(userName, 'ig');
+        User.aggregate()
+            .project({
+                full_name: { $concat: ['$first_name', ' ', '$last_name'] },
+                first_name: 1,
+                last_name: 1,
+                username: 1,
+                email: 1,
+                avatar: 1,
+                online: 1,
+                created_at: 1
+            })
+            .match({ full_name: searchString })
+            .exec(function (err, users) {
+                if (err) throw err;
+                res.status(200).json(users);
+            });
+    } catch (error) {
         res.status(500).json({message: error.message})
     }
 };
@@ -74,12 +112,14 @@ exports.update = async (req, res) => {
     }
 };
 
-exports.userOnline = async (_id, status) => {
-    // console.log("_id :", _id)
-    // console.log("status :", status)
-    if (_id) {
-        await User.findByIdAndUpdate(_id, {
-            online: status
-        }, {new: true});
+exports.updateUserOnline = async (_id, status) => {
+    try {
+        if (_id) {
+            await User.findOneAndUpdate({
+                _id: _id
+            }, { online: status, online_at: Date.now() }, { upsert: true });
+        }
+    } catch (error) {
+        console.log(error)
     }
 };

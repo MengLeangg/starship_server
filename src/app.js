@@ -28,13 +28,25 @@ connection(); // connection to mongodb database
 require('./routes/index')(app);
 
 // ********** Socket listen for client connection ********** //
+const onlineUsers = {};
 
 io.on('connection', (socket) => {
+    // console.log("a user connected")
     // when connected
     // when user online
-    socket.on('login', function(data){
-        User.userOnline(data.userId, true)
-    });
+    socket.on('login', (data) => {
+        onlineUsers[socket.id] = data.userId;
+        User.updateUserOnline(data.userId, true) // update user online params (user_id, status)
+        // io.emit("getUsers", getUsers())
+        io.emit('online', { userId: data.userId })
+    })
+
+    // Emit user offline from client
+    socket.on("offline", (data) => {
+        User.updateUserOnline(data.userId, false)
+        io.emit('offline');
+    })
+
     // take userId and socketId from user
     socket.on("addUser", userId => {
         addUser(userId, socket.id)
@@ -49,18 +61,15 @@ io.on('connection', (socket) => {
         io.emit("displayTyping", data);
     })
 
-    // // Stop Typing
-    // socket.on("stopTyping", (data) => {
-    //     io.emit("notifyStopTyping", {
-    //         userId: data.userId,
-    //         typing: data.typing
-    //     });
-    // })
+    // user create new conversation then refresh conversation list
+    socket.on('new-conversation', () => {
+        io.emit('refresh-conversation')
+    })
 
     // send and receive message
     socket.on("sendMessage", ({ senderId, receiverId, text }) => {
         const user = getCurrentUser(receiverId);
-        io.to(user.socketId).emit('getMessage', {
+        io.to(user ? user.socketId : null).emit('getMessage', {
             senderId,
             text
         })
@@ -70,9 +79,13 @@ io.on('connection', (socket) => {
     socket.on("disconnect", () => {
         // console.log("a user disconnected.")
         userLeave(socket.id)
-        io.emit("getUsers", getUsers())
+        // io.emit("getUsers", getUsers())
 
         // when user offline
+        // remove saved socket from users object
+        const offlineUserId = onlineUsers[socket.id];
+        User.updateUserOnline(offlineUserId, false) // update user online params (user_id, status)
+        io.emit('offline');
     })
 });
 

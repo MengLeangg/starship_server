@@ -25,7 +25,7 @@ exports.index = async (req, res) => {
     try {
         const conversation = await Conversation.find({
             members: { $in:[req.params.userId] },
-        });
+        }).sort({ timestamp : -1 })
 
         res.status(200).json(conversation);
     }

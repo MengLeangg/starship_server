@@ -22,9 +22,18 @@ exports.store = async (req, res) => {
 // @access Public
 exports.index = async (req, res) => {
     try{
-        const messages = await Message.find({
-            conversationId: req.params.conversationId
-        });
+        // const messages = await Message.find({
+        //     conversationId: req.params.conversationId
+        // });
+
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skipIndex = (page - 1) * limit;
+        const messages = await Message
+            .find({conversationId: req.params.conversationId})
+            .sort({ 'createdAt': 'desc', "_id": 1 })
+            .skip(skipIndex)
+            .limit(limit)
         res.status(200).json(messages);
     }
     catch (error) {
