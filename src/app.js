@@ -6,6 +6,7 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server, { cors: { origin: '*' } }); // Create socket.io connection
 const cors = require("cors");
 const bodyParser = require("body-parser");
+require('./prod')(app);
 const chalk = require('chalk');
 const { getUsers, addUser, getCurrentUser, userLeave } = require('./utils/users');
 
