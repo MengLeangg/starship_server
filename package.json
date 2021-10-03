@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "cross-env NODE_ENV=development nodemon src/app.js --watch server",
-    "build": "cross-env NODE_ENV=production node src/app.js",
+    "serve": "cross-env NODE_ENV=production node src/app.js",
+    "build": "node src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
